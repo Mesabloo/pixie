@@ -29,6 +29,7 @@ data Expr
     | Mul Expr Expr
     | Div Expr Expr
     | Lit LitExpr
+    | FunCall Name [Expr]
 
 data LitExpr
     = LInt Integer
