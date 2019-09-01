@@ -40,7 +40,7 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 extra-deps:
-- megaparsec-6.5.0@sha256:a1dfed92863607ea9f7609a0578d486761a052a4d01aaff95b90f25da2564346,6119
+- megaparsec-7.0.5@sha256:45e1f1348fab2783646fdb4d9e6097568981a740951c7356d36d794e2baba305,3902
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

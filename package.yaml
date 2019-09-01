@@ -21,9 +21,10 @@ description:         Please see the README on GitHub at <https://github.com/mesa
 
 dependencies:
 - base >= 4.7 && < 5
-- megaparsec <= 7
+- megaparsec >= 7
 - parser-combinators
 - optparse-applicative
+- text
 
 library:
   source-dirs: src
