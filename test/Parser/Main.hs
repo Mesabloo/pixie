@@ -2,19 +2,21 @@
 
 module Main where
 
-import Data.Text
+import Data.Text hiding (length)
 import Text.Megaparsec
 import Pixie.Parser.Parser
 import System.Exit
 import Text.RawString.QQ
+import Data.Key
 
 main :: IO ()
-main = putStrLn "" *> mapM_ handle testStrings
+main = putStrLn "" *> sequence_ (mapWithKey handle testStrings)
   where
-    handle :: Text -> IO ()
-    handle text =
+    handle :: Int -> Text -> IO ()
+    handle index text =
         let parsed = parse pProgram "tests" text
-        in pure parsed >>= \case
+            indexShow = putStr ("[Test " <> show (index + 1) <> " of " <> show (length testStrings) <> "]: ")
+        in parsed <$ indexShow >>= \case
             Left err -> putStrLn (errorBundlePretty err) >> exitFailure
             Right x -> print x
 
