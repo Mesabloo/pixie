@@ -28,6 +28,7 @@ dependencies:
 - raw-strings-qq
 - ansi-terminal
 - mtl
+- containers
 
 library:
   source-dirs: src
