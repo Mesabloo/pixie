@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, LambdaCase, QuasiQuotes #-}
 
-module Main where
+module Parser.Main where
 
 import Data.Text hiding (length)
 import Text.Megaparsec
@@ -8,17 +8,20 @@ import Pixie.Parser.Parser
 import System.Exit
 import Text.RawString.QQ
 import Data.Key
+import Logger
+import Control.Monad.State
+import Types
 
-main :: IO ()
-main = putStrLn "" *> sequence_ (mapWithKey handle testStrings)
+run :: Spec ()
+run = sequence_ (mapWithKey handle testStrings)
   where
-    handle :: Int -> Text -> IO ()
+    handle :: Int -> Text -> Spec ()
     handle index text =
         let parsed = parse pProgram "tests" text
-            indexShow = putStr ("[Test " <> show (index + 1) <> " of " <> show (length testStrings) <> "]: ")
-        in parsed <$ indexShow >>= \case
-            Left err -> putStrLn (errorBundlePretty err) >> exitFailure
-            Right x -> print x
+            indexShow = putStr ("Test " <> show (index + 1) <> " of " <> show (length testStrings) <> ": ")
+        in parsed <$ liftIO indexShow >>= \case
+            Left err -> liftIO ((bold . red) (putStrLn "Failed!") *> red (putStrLn (errorBundlePretty err))) *> put True
+            Right res -> liftIO ((bold . green) (putStrLn "Passed!") *> blue (print res))
 
 testStrings :: [Text]
 testStrings = [ [r| fn main(): int {} |]
