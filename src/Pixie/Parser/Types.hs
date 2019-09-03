@@ -35,7 +35,6 @@ data Expr
     | Sub Expr Expr
     | Mul Expr Expr
     | Div Expr Expr
-    | Neg Expr
     | Lit LitExpr
     | VarId Name
     | FunCall Name [Expr]
