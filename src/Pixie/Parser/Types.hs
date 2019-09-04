@@ -19,7 +19,7 @@ data Type
     = Int | Float | Char | Void
     deriving Show
 
-data Var = Var { valName :: Name, valType :: Type }
+data Var = Var { varName :: Name, varType :: Type }
     deriving Show
 
 type Name = Text
