@@ -104,7 +104,7 @@ pExpr =
 
 
 pBlockStatement :: Parser FunStatement
-pBlockStatement = pRet M.<|> pVarDef
+pBlockStatement = pRet M.<|> pVarDef M.<|> (Expression <$> pExpr)
 
 pRet :: Parser FunStatement
 pRet = string "ret" *> (Return <$> pExpr) <* string ";"
