@@ -9,7 +9,7 @@ import qualified Data.Text as Text
 import qualified Pixie.Parser.Types as P (Type(..))
 import Pixie.Parser.Types hiding (Type(..))
 import qualified Data.Map as Map
-import Text.PrettyPrint.Leijen
+import Text.PrettyPrint.Leijen hiding ((<$>))
 import Control.Monad.Writer
 import Control.Applicative
 import Control.Monad.Reader
@@ -23,7 +23,7 @@ tcExpr (Lit l) =
             LChar _ -> TChar
     in pure $ tcLit l
 tcExpr (VarId name) =
-    lookupEnv name >>= pure
+    lookupEnv name
 tcExpr (FunCall name args) =
     lookupEnv name >>= \case
         TFun argsT retT ->
@@ -46,7 +46,43 @@ lookupEnv name =
         Nothing -> censor (makeUnboundIdError (Text.unpack name) :) (pure TVoid)
         Just t -> pure t
 
+tcType :: P.Type -> Type
+tcType P.Int = TInt
+tcType P.Float = TFloat
+tcType P.Char = TChar
+tcType P.Void = TVoid
 
+-------------------------------------------------------------------------------------------------------
+
+tcProgram :: Program -> Check ()
+tcProgram (Program stts) = mapM_ tcStatement stts
+
+tcStatement :: Statement -> Check ()
+tcStatement Function{..} =
+    let t = tcType retType
+        args' = (\a -> (varName a, tcType (varType a))) <$> args
+    in do
+        modify (wrapTypeEnv . (Map.singleton funName (TFun (snd <$> args') t) `Map.union` Map.fromList args' `Map.union`) . unwrapTypeEnv)
+        ret <- tcBody body
+        () <$ unify t ret
+tcStatement Global{..} = do
+    te <- tcExpr globalValue
+    tRes <- unify (tcType globalType) te
+    modify (wrapTypeEnv . (Map.singleton globalName tRes `Map.union`) . unwrapTypeEnv)
+
+tcBody :: Body -> Check Type
+tcBody stts = do
+    instrs <- mapM tcBodyStatement stts
+    pure $ if null instrs then TVoid else last instrs
+
+tcBodyStatement :: FunStatement -> Check Type
+tcBodyStatement (Return e) = tcExpr e
+tcBodyStatement (VarDef name type' e) = do
+    exprT <- tcExpr e
+    let t = tcType type'
+    () <$ unify t exprT
+    TVoid <$ modify (wrapTypeEnv . (Map.singleton name t `Map.union`) . unwrapTypeEnv)
+tcBodyStatement (Expression e) = TVoid <$ tcExpr e
 
 -------------------------------------------------------------------------------------------------------
 
