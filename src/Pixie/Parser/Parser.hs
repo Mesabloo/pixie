@@ -73,12 +73,8 @@ pFunction = do
 
 pGlobalVar :: Parser Statement
 pGlobalVar = do
-    string "let"
-    id' <- pIdentifier
-    string ":"
-    type' <- pType
-    string "="
-    (Global id' type' <$> pExpr) <* string ";"
+    VarDef id' type' expr <- pVarDef
+    pure (Global id' type' expr)
 
 pBody :: Parser Body
 pBody = brackets $ M.many pBlockStatement
