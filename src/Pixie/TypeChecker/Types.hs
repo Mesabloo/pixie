@@ -1,16 +1,21 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Pixie.TypeChecker.Types where
 
 import Control.Monad.RWS
+import Control.Monad.State
 import Data.Text
 import qualified Data.Map as Map
+import Text.PrettyPrint.Leijen
+import Data.Void
 
-data Type
-    = TVoid | TInteger | TFloat | TChar
-    deriving Show
+data Type = TInt | TFloat | TChar | TVoid
+          | TFun Type [Type]
+    deriving (Eq, Ord, Show)
 
-data Constraint = Unify Type Type
+type TIError = Doc
 
-type Check = RWS TypeEnv [Constraint] [Text]
+newtype TypeEnv = TypeEnv (Map.Map String Type)
+    deriving (Show, Monoid, Semigroup)
 
-data TypeEnv
-    = TypeEnv { defined :: Map.Map Text Type }
+type Check = RWS TypeEnv [TIError] Int
