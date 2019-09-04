@@ -21,4 +21,7 @@ newtype TypeEnv = TypeEnv (Map.Map Text Type)
 unwrapTypeEnv :: TypeEnv -> Map.Map Text Type
 unwrapTypeEnv (TypeEnv m) = m
 
+wrapTypeEnv :: Map.Map Text Type -> TypeEnv
+wrapTypeEnv = TypeEnv
+
 type Check = RWS TypeEnv [TIError] Int
