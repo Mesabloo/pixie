@@ -37,10 +37,13 @@ run =
                         *> put True
                     | otherwise ->
                         liftIO $ (bold . green) (putStrLn "Passed!")
-                            *> green (putStrLn "Type checking errored out as intended:"
-                                *> mapM_ ((*>) (putStr "> ") . print) errs)
+                            *> blue (putStrLn "Type checking errored out as intended with errors:")
+                            *> blue (mapM_ ((*>) (putStr "> ") . print) errs)
 
 testExpressions :: [(Expr, Type, Bool)]
 testExpressions = [ (Lit (LInt 0), TInt, False)
                   , (VarId "hello", TVoid, True)
-                  , (FunCall "x" [Lit (LInt 1)] `Add` Lit (LFloat $ -1.3), TVoid, True) ]
+                  , (FunCall "x" [Lit (LInt 1)] `Add` Lit (LFloat $ -1.3), TVoid, True)
+                  , (FunCall "y" [Lit (LInt 0), Lit (LFloat 0.0)], TVoid, True)
+                  , (Lit (LInt 0) `Add` Lit (LInt 1), TInt, False)
+                  , (Lit (LFloat 0.0) `Add` Lit (LChar 'a'), TVoid, True) ]
