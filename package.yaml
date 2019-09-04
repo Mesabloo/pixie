@@ -29,6 +29,7 @@ dependencies:
 - ansi-terminal
 - mtl
 - containers
+- wl-pprint
 
 library:
   source-dirs: src

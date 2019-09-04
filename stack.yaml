@@ -41,6 +41,7 @@ packages:
 #
 extra-deps:
 - megaparsec-7.0.5@sha256:45e1f1348fab2783646fdb4d9e6097568981a740951c7356d36d794e2baba305,3902
+- wl-pprint-1.2.1@sha256:aea676cff4a062d7d912149d270e33f5bb0c01b68a9db46ff13b438141ff4b7c,734
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
