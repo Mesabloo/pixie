@@ -45,5 +45,5 @@ testExpressions = [ (Lit (LInt 0), TInt, False)
                   , (VarId "hello", TVoid, True)
                   , (FunCall "x" [Lit (LInt 1)] `Add` Lit (LFloat $ -1.3), TVoid, True)
                   , (FunCall "y" [Lit (LInt 0), Lit (LFloat 0.0)], TVoid, True)
-                  , (Lit (LInt 0) `Add` Lit (LInt 1), TInt, False)
+                  -- , (Lit (LInt 0) `Add` Lit (LInt 1), TInt, False)
                   , (Lit (LFloat 0.0) `Add` Lit (LChar 'a'), TVoid, True) ]
