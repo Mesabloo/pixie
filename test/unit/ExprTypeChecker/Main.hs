@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase, OverloadedStrings #-}
 
-module TypeChecker.Main where
+module ExprTypeChecker.Main where
 
 import Logger
 import System.Exit
