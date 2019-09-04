@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, RecordWildCards #-}
 
 module Pixie.TypeChecker.Checker where
 
@@ -30,26 +30,28 @@ tcExpr (FunCall name args) =
             let checkArgs = do
                     res <- mapM tcExpr args
                     if length argsT == length res
-                    then forM_ (zip argsT res) $
-                        \(t1, t2) ->
-                            if t1 /= t2
-                            then censor (makeUnifyError t1 t2 :) (pure TVoid)
-                            else pure TVoid
+                    then forM_ (zip argsT res) $ uncurry unify
                     else censor (makeWrongNumberOfArgsError (Text.unpack name) (length argsT) (length res) :) (pure ())
             in retT <$ checkArgs
         _ -> censor (makeNotAFunctionError (Text.unpack name) :) (pure TVoid)
 tcExpr e = censor (text "Type-checking for expression `" <> text (show e) <> text "` is not yet implemented." :) (pure TVoid)
 
+unify :: Type -> Type -> Check Type
+unify t1 t2 | t1 /= t2 = censor (makeUnifyError t1 t2 :) (pure TVoid)
+            | otherwise = pure t1
+
 lookupEnv :: Text.Text -> Check Type
 lookupEnv name =
-    asks (Map.lookup name . unwrapTypeEnv) >>= \case
+    gets (Map.lookup name . unwrapTypeEnv) >>= \case
         Nothing -> censor (makeUnboundIdError (Text.unpack name) :) (pure TVoid)
         Just t -> pure t
+
+
 
 -------------------------------------------------------------------------------------------------------
 
 runCheck :: Check a -> (a, [TIError])
 runCheck c =
-    let r = mempty
-        s = 0
+    let r = 0
+        s = mempty
     in evalRWS c r s

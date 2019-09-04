@@ -24,4 +24,4 @@ unwrapTypeEnv (TypeEnv m) = m
 wrapTypeEnv :: Map.Map Text Type -> TypeEnv
 wrapTypeEnv = TypeEnv
 
-type Check = RWS TypeEnv [TIError] Int
+type Check = RWS Int [TIError] TypeEnv
