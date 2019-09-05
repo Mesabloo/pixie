@@ -16,3 +16,6 @@ makeNotAFunctionError name = text ("`" <> name <> "` is not a function.")
 
 makeUnifyError :: Type -> Type -> Doc
 makeUnifyError t1 t2 = text ("Cannot match type `" <> show t1 <> "` with type `" <> show t2 <> "`.")
+
+makeInvalidNumTypeError :: Type -> Doc
+makeInvalidNumTypeError t = text ("Invalid numeric type `" <> show t <> "`")

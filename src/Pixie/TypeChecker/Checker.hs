@@ -34,7 +34,20 @@ tcExpr (FunCall name args) =
                     else censor (makeWrongNumberOfArgsError (Text.unpack name) (length argsT) (length res) :) (pure ())
             in retT <$ checkArgs
         _ -> censor (makeNotAFunctionError (Text.unpack name) :) (pure TVoid)
+tcExpr (Add e1 e2) = numOpCheck e1 e2
+tcExpr (Sub e1 e2) = numOpCheck e1 e2
+tcExpr (Mul e1 e2) = numOpCheck e1 e2
+tcExpr (Div e1 e2) = numOpCheck e1 e2
 tcExpr e = censor (text "Type-checking for expression `" <> text (show e) <> text "` is not yet implemented." :) (pure TVoid)
+
+numOpCheck :: Expr -> Expr -> Check Type
+numOpCheck e1 e2 = do
+    et1 <- tcExpr e1
+    et2 <- tcExpr e2
+    () <$ unify et1 et2
+    if isNumType et1 && isNumType et2
+    then pure et1
+    else censor (makeInvalidNumTypeError (if isNumType et1 then et2 else et1) :) (pure TVoid)
 
 unify :: Type -> Type -> Check Type
 unify t1 t2 | t1 /= t2 = censor (makeUnifyError t1 t2 :) (pure TVoid)
