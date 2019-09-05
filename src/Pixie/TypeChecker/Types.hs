@@ -24,7 +24,7 @@ unwrapTypeEnv (TypeEnv m) = m
 wrapTypeEnv :: Map.Map Text Type -> TypeEnv
 wrapTypeEnv = TypeEnv
 
-type Check = RWS Int [TIError] TypeEnv
+type Check = RWS TypeEnv [TIError] [Type]
 
 isNumType :: Type -> Bool
 isNumType TInt = True

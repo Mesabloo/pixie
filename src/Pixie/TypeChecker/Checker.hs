@@ -55,7 +55,7 @@ unify t1 t2 | t1 /= t2 = censor (makeUnifyError t1 t2 :) (pure TVoid)
 
 lookupEnv :: Text.Text -> Check Type
 lookupEnv name =
-    gets (Map.lookup name . unwrapTypeEnv) >>= \case
+    asks (Map.lookup name . unwrapTypeEnv) >>= \case
         Nothing -> censor (makeUnboundIdError (Text.unpack name) :) (pure TVoid)
         Just t -> pure t
 
@@ -68,39 +68,44 @@ tcType P.Void = TVoid
 -------------------------------------------------------------------------------------------------------
 
 tcProgram :: Program -> Check ()
-tcProgram (Program stts) = mapM_ tcStatement stts
-
-tcStatement :: Statement -> Check ()
-tcStatement Function{..} =
+tcProgram (Program []) = pure ()
+tcProgram (Program (Function{..}:ss)) =
     let t = tcType retType
         args' = liftA2 (,) varName (tcType . varType) <$> args
     in do
-        modify (wrapTypeEnv . (Map.singleton funName (TFun (snd <$> args') t) `Map.union` Map.fromList args' `Map.union`) . unwrapTypeEnv)
-        ret <- tcBody body
+        ret <- local (wrapTypeEnv . (Map.fromList args' `Map.union`) . unwrapTypeEnv) (tcBody body)
         () <$ unify t ret
-tcStatement Global{..} = do
+        let funVal = TFun (snd <$> args') t
+        local (wrapTypeEnv . (Map.singleton funName funVal `Map.union`) . unwrapTypeEnv) (tcProgram (Program ss))
+tcProgram (Program (Global{..}:ss)) = do
     te <- tcExpr globalValue
-    tRes <- unify (tcType globalType) te
-    modify (wrapTypeEnv . (Map.singleton globalName tRes `Map.union`) . unwrapTypeEnv)
+    () <$ unify (tcType globalType) te
+    local (wrapTypeEnv . (Map.singleton globalName te `Map.union`) . unwrapTypeEnv) (tcProgram (Program ss))
 
 tcBody :: Body -> Check Type
-tcBody stts = do
-    instrs <- mapM tcBodyStatement stts
-    pure $ if null instrs then TVoid else last instrs
+tcBody [] = do
+    st <- get <* put []
 
-tcBodyStatement :: FunStatement -> Check Type
-tcBodyStatement (Return e) = tcExpr e
-tcBodyStatement (VarDef name type' e) = do
+    if null st
+    then pure TVoid
+    else
+        let first = head st
+        in first <$ sequence_ (unify first <$> tail st)
+tcBody (Return e:ss) = do
+    expr <- tcExpr e
+    modify (expr :)
+    tcBody ss
+tcBody (Expression e:ss) = tcExpr e *> tcBody ss
+tcBody (VarDef name type' e:ss) = do
     exprT <- tcExpr e
     let t = tcType type'
     () <$ unify t exprT
-    TVoid <$ modify (wrapTypeEnv . (Map.singleton name t `Map.union`) . unwrapTypeEnv)
-tcBodyStatement (Expression e) = TVoid <$ tcExpr e
+    local (wrapTypeEnv . (Map.singleton name t `Map.union`) . unwrapTypeEnv) (tcBody ss)
 
 -------------------------------------------------------------------------------------------------------
 
 runCheck :: Check a -> (a, [TIError])
 runCheck c =
-    let r = 0
-        s = mempty
+    let r = mempty
+        s = []
     in evalRWS c r s
