@@ -39,4 +39,6 @@ testPrograms = [ (Program [Function "main" Int [] []], True)
                , (Program [Global "x" Float $ Lit (LFloat (-0.0))], False)
                , (Program [Function "f" Void [] [], Global "x" Void $ FunCall "f" []], False)
                , (Program [Function "test2" Int [Var "x" Int] [VarDef "y" Int (Mul (Add (VarId "x") (Lit (LInt 1))) (Lit (LInt 2))), Return (VarId "y")]], False)
-               , (Program [Function "main" Int [] [VarDef "x" Int (Lit (LInt 0)), Return (Lit $ LFloat 0)]], True) ]
+               , (Program [Function "main" Int [] [VarDef "x" Int (Lit (LInt 0)), Return (Lit $ LFloat 0)]], True)
+               , (Program [Function "f" Int [] [Return (Lit $ LInt 0), Return (Lit $ LFloat 0.0)]], True)
+               , (Program [Function "f" Int [] [Return (Lit $ LInt 0), Return (Lit $ LInt 0)]], False) ]
