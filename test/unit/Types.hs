@@ -6,6 +6,8 @@ import System.Exit
 
 type Spec = StateT Bool IO
 
+data Options = Options { debug :: Bool }
+
 runSpec :: String -> Spec a -> IO a
 runSpec name s = do
     putStrLn ""

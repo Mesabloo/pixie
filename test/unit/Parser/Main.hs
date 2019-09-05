@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase, QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, QuasiQuotes, RecordWildCards #-}
 
 module Parser.Main where
 
@@ -12,16 +12,16 @@ import Logger
 import Control.Monad.State
 import Types
 
-run :: Spec ()
-run = sequence_ (mapWithKey handle testStrings)
+run :: Options -> Spec ()
+run Options{..} = sequence_ (mapWithKey handle testStrings)
   where
     handle :: Int -> Text -> Spec ()
     handle index text =
         let parsed = parse pProgram "tests" text
             indexShow = putStr ("Test " <> show (index + 1) <> " of " <> show (length testStrings) <> ": ")
         in parsed <$ liftIO indexShow >>= \case
-            Left err -> liftIO ((bold . red) (putStrLn "Failed!") *> red (putStrLn (errorBundlePretty err))) *> put True
-            Right res -> liftIO ((bold . green) (putStrLn "Passed!") *> blue (print res))
+            Left err -> put True *> liftIO ((bold . red) (putStrLn "Failed!") *> red (putStrLn (errorBundlePretty err)))
+            Right res -> liftIO ((bold . green) (putStrLn "Passed!") *> guard (not debug) <|> blue (print res))
 
 testStrings :: [Text]
 testStrings = [ [r| fn main(): int {} |]

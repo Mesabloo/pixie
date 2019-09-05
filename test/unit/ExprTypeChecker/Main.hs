@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, OverloadedStrings #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings, RecordWildCards #-}
 
 module ExprTypeChecker.Main where
 
@@ -11,9 +11,10 @@ import Pixie.Parser.Types hiding (Type(..))
 import Pixie.TypeChecker.Checker
 import Data.Key
 import qualified Data.Text as Text
+import Control.Applicative
 
-run :: Spec ()
-run =
+run :: Options -> Spec ()
+run Options{..} =
     sequence_ (mapWithKey testTC testExpressions)
   where
     testTC :: Int -> (Expr, Type, Bool) -> Spec ()
@@ -25,20 +26,23 @@ run =
                 (x, [])
                     | x /= t ->
                         liftIO ((bold . red) (putStrLn "Failed!")
-                            *> red (putStrLn "Cannot unify expr type with expected type"))
+                            *> red (putStrLn ("Cannot unify type `" <> show x <> "` with expected type `" <> show t <> "`")))
                         *> put True
                     | otherwise -> liftIO $ do
                         (bold . green) (putStrLn "Passed!")
-                        blue (putStr (show e) *> putStr " :: " *> print x)
+                        guard (not debug)
+                            <|> blue (putStr (show e) *> putStr " :: " *> print x)
                 (x, errs)
                     | not shouldFail -> 
                         liftIO ((bold . red) (putStrLn "Failed!")
                             *> red (mapM_ print errs))
                         *> put True
                     | otherwise ->
-                        liftIO $ (bold . green) (putStrLn "Passed!")
-                            *> blue (putStrLn "Type checking errored out as intended with errors:")
-                            *> blue (mapM_ ((*>) (putStr "> ") . print) errs)
+                        liftIO $ do
+                            (bold . green) (putStrLn "Passed!")
+                            guard (not debug)
+                                <|> (blue (putStrLn "Type checking errored out as intended with errors:")
+                                    *> blue (mapM_ ((*>) (putStr "> ") . print) errs))
 
 testExpressions :: [(Expr, Type, Bool)]
 testExpressions = [ (Lit (LInt 0), TInt, False)

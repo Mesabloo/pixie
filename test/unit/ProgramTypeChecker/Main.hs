@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module ProgramTypeChecker.Main where
 
@@ -8,9 +8,10 @@ import Control.Monad.State
 import Pixie.Parser.Types
 import Data.Key
 import Pixie.TypeChecker.Checker
+import Control.Applicative
 
-run :: Spec ()
-run =
+run :: Options -> Spec ()
+run Options{..} =
     sequence_ (mapWithKey testTC testPrograms)
   where
     testTC :: Int -> (Program, Bool) -> Spec ()
@@ -26,9 +27,11 @@ run =
                             *> red (mapM_ print errs))
                         *> put True
                     | otherwise ->
-                        liftIO $ (bold . green) (putStrLn "Passed!")
-                            *> blue (putStrLn "Type checking errored out as intended with errors:")
-                            *> blue (mapM_ ((*>) (putStr "> ") . print) errs)
+                        liftIO $ do
+                            (bold . green) (putStrLn "Passed!")
+                            guard (not debug)
+                                <|> (blue (putStrLn "Type checking errored out as intended with errors:")
+                                    *> blue (mapM_ ((*>) (putStr "> ") . print) errs))
 
 testPrograms :: [(Program, Bool)]
 testPrograms = [ (Program [Function "main" Int [] []], True)
