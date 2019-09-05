@@ -57,3 +57,6 @@ tests:
     dependencies:
     - pixie
     - keys
+    - ansi-terminal
+    - wl-pprint
+    - optparse-applicative
