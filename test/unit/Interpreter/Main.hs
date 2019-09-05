@@ -17,9 +17,13 @@ run Options{..} =
     evaluate :: Int -> Program -> Spec ()
     evaluate index p = 
         let res = runEval (evalProgram p)
-        in case res of
-            Left err -> put True *> liftIO (red (print err))
-            Right result -> liftIO (green (print result))
+            indexShow = putStr ("Test " <> show (index + 1) <> " of " <> show (length testPrograms) <> ": ")
+        in liftIO indexShow *> case res of
+            Left err -> put True *> liftIO ((red . bold) (putStrLn "Failed!") *> red (print err))
+            Right result -> liftIO ((green . bold) (putStrLn "Passed!"))
 
 testPrograms :: [Program]
-testPrograms = [Program [Function "id" Int [Var "x" Int] [Return (VarId "x")], Global "x" Int (FunCall "id" [Lit (LInt 0)])]]
+testPrograms = [ Program [Function "id" Int [Var "x" Int] [Return (VarId "x")]
+                         , Global "x" Int (FunCall "id" [Lit (LInt 0)])]
+               , Program [Function "id" Int [Var "x" Int] [Return (VarId "x" `Add` Lit (LInt 0))]
+                         , Global "x" Int (FunCall "id" [Lit (LInt 0)])] ]
