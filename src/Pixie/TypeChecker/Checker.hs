@@ -73,7 +73,7 @@ tcProgram (Program stts) = mapM_ tcStatement stts
 tcStatement :: Statement -> Check ()
 tcStatement Function{..} =
     let t = tcType retType
-        args' = (\a -> (varName a, tcType (varType a))) <$> args
+        args' = liftA2 (,) varName (tcType . varType) <$> args
     in do
         modify (wrapTypeEnv . (Map.singleton funName (TFun (snd <$> args') t) `Map.union` Map.fromList args' `Map.union`) . unwrapTypeEnv)
         ret <- tcBody body
